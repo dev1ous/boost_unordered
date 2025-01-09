@@ -22,7 +22,6 @@
 #include <boost/unordered/unordered_node_map_fwd.hpp>
 
 #include <boost/container_hash/hash.hpp>
-#include <boost/core/serialization.hpp>
 
 #include <type_traits>
 
@@ -1095,13 +1094,6 @@ namespace boost {
       concurrent_node_map<K, T, H, P, A>& c, Predicate pred)
     {
       return c.table_.erase_if(pred);
-    }
-
-    template<class Archive, class K, class V, class H, class KE, class A>
-    void serialize(
-      Archive& ar, concurrent_node_map<K, V, H, KE, A>& c, unsigned int)
-    {
-      ar & core::make_nvp("table",c.table_);
     }
 
 #if BOOST_UNORDERED_TEMPLATE_DEDUCTION_GUIDES
