@@ -4,6 +4,10 @@
 #include <type_traits>
 #include <iterator>
 
+#if __cplusplus >= 201703L
+#include <execution>
+#endif
+
 #define BOOST_UNORDERED_STATIC_ASSERT_INVOCABLE(F)                             \
   static_assert(boost::unordered::detail::is_invocable<F, value_type&>::value, \
     "The provided Callable must be invocable with value_type&");
@@ -13,8 +17,7 @@
     boost::unordered::detail::is_invocable<F, value_type const&>::value,       \
     "The provided Callable must be invocable with value_type const&");
 
-#if __cplusplus >= 202002L
-
+#if __cplusplus >= 201703L && !defined(_MSC_VER)
 #define BOOST_UNORDERED_STATIC_ASSERT_EXEC_POLICY(P)                           \
   static_assert(!std::is_base_of<std::execution::parallel_unsequenced_policy,  \
                   ExecPolicy>::value,                                          \
@@ -22,14 +25,8 @@
   static_assert(                                                               \
     !std::is_base_of<std::execution::unsequenced_policy, ExecPolicy>::value,   \
     "ExecPolicy must be sequenced.");
-
 #else
-
-#define BOOST_UNORDERED_STATIC_ASSERT_EXEC_POLICY(P)                           \
-  static_assert(!std::is_base_of<std::execution::parallel_unsequenced_policy,  \
-                  ExecPolicy>::value,                                          \
-    "ExecPolicy must be sequenced.");
-
+#define BOOST_UNORDERED_STATIC_ASSERT_EXEC_POLICY(P)
 #endif
 
 namespace boost {
@@ -89,6 +86,7 @@ using is_invocable = is_invocable_helper<void, F, Args...>;
 } // namespace unordered
 } // namespace boost
 
+// Macros for last argument static assertions
 #define BOOST_UNORDERED_STATIC_ASSERT_LAST_ARG_INVOCABLE(Arg, Args)           \
   BOOST_UNORDERED_STATIC_ASSERT_INVOCABLE(                                    \
     typename boost::unordered::detail::last_type<Arg, Args>::type)
@@ -109,7 +107,7 @@ using is_invocable = is_invocable_helper<void, F, Args...>;
     typename boost::unordered::detail::penultimate_type<Arg1, Arg2,           \
       Args>::type)
 
-#if __cplusplus >= 202002L && !defined(_MSC_VER)  // MSVC might need additional checks
+#if __cplusplus >= 202002L && !defined(_MSC_VER)
 #define BOOST_UNORDERED_STATIC_ASSERT_FWD_ITERATOR(Iterator)                   \
   static_assert(std::forward_iterator<Iterator>,                               \
     "The provided iterator must be at least forward");
