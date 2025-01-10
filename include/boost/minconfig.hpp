@@ -89,6 +89,12 @@
 #  define BOOST_NORETURN
 #endif
 
+#if __cplusplus >= 201402L
+#define BOOST_CXX14_CONSTEXPR constexpr
+#else
+#define BOOST_CXX14_CONSTEXPR
+#endif
+
 #if BOOST_MSVC
   #if !defined(_CPPUNWIND) && !defined(BOOST_NO_EXCEPTIONS)
     #define BOOST_NO_EXCEPTIONS
