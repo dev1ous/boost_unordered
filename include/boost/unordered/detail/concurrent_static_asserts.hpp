@@ -1,8 +1,6 @@
 #ifndef BOOST_UNORDERED_DETAIL_CONCURRENT_STATIC_ASSERTS_HPP
 #define BOOST_UNORDERED_DETAIL_CONCURRENT_STATIC_ASSERTS_HPP
 
-#include <boost/config.hpp>
-#include <boost/unordered/detail/type_traits.hpp>
 #include <type_traits>
 #include <iterator>
 
@@ -15,7 +13,7 @@
     boost::unordered::detail::is_invocable<F, value_type const&>::value,       \
     "The provided Callable must be invocable with value_type const&");
 
-#if BOOST_CXX_VERSION >= 202002L
+#if __cplusplus >= 202002L
 
 #define BOOST_UNORDERED_STATIC_ASSERT_EXEC_POLICY(P)                           \
   static_assert(!std::is_base_of<std::execution::parallel_unsequenced_policy,  \
@@ -64,6 +62,17 @@ struct penultimate_type<First, Rest...> {
     using type = typename penultimate_type<Rest...>::type;
 };
 
+#if __cplusplus < 201703L
+template<typename...>
+struct void_t_impl { using type = void; };
+
+template<typename... Ts>
+using void_t = typename void_t_impl<Ts...>::type;
+#else
+template<typename... Ts>
+using void_t = std::void_t<Ts...>;
+#endif
+
 template<class, class... >
 struct is_invocable_helper : std::false_type {};
 
@@ -100,16 +109,16 @@ using is_invocable = is_invocable_helper<void, F, Args...>;
     typename boost::unordered::detail::penultimate_type<Arg1, Arg2,           \
       Args>::type)
 
-#if defined(BOOST_NO_CXX20_HDR_CONCEPTS)
+#if __cplusplus >= 202002L && !defined(_MSC_VER)  // MSVC might need additional checks
+#define BOOST_UNORDERED_STATIC_ASSERT_FWD_ITERATOR(Iterator)                   \
+  static_assert(std::forward_iterator<Iterator>,                               \
+    "The provided iterator must be at least forward");
+#else
 #define BOOST_UNORDERED_STATIC_ASSERT_FWD_ITERATOR(Iterator)                   \
   static_assert(                                                               \
     std::is_base_of<                                                           \
       std::forward_iterator_tag,                                               \
       typename std::iterator_traits<Iterator>::iterator_category>::value,      \
-    "The provided iterator must be at least forward");
-#else
-#define BOOST_UNORDERED_STATIC_ASSERT_FWD_ITERATOR(Iterator)                   \
-  static_assert(std::forward_iterator<Iterator>,                               \
     "The provided iterator must be at least forward");
 #endif
 
